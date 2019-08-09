@@ -12,6 +12,8 @@ namespace HslCommunication.Controls
     /// <summary>
     /// 一个罐子形状的控件
     /// </summary>
+    [DefaultBindingProperty( "Text" )]
+    [DefaultProperty( "Text" )]
     public partial class UserDrum : UserControl
     {
         #region Constructor
@@ -37,6 +39,7 @@ namespace HslCommunication.Controls
         [Browsable(true)]
         [DefaultValue(typeof(Color), "Silver" )]
         [Category("外观")]
+        [Description( "获取或设置容器罐的背景色。" )]
         public Color DrumBackColor
         {
             get
@@ -58,6 +61,7 @@ namespace HslCommunication.Controls
         [Browsable( true )]
         [DefaultValue( typeof( Color ), "DimGray" )]
         [Category( "外观" )]
+        [Description( "获取或设置容器罐的边框色。" )]
         public Color BorderColor
         {
             get
@@ -77,11 +81,14 @@ namespace HslCommunication.Controls
         /// 获取或设置显示的文本信息
         /// </summary>
         [Browsable( true )]
-        [DefaultValue( "" )]
         [Category( "外观" )]
+        [EditorBrowsable( EditorBrowsableState.Always )]
+        [Bindable( true )]
+        [DesignerSerializationVisibility( DesignerSerializationVisibility.Visible )]
+        [Description("获取或设置在容器上显示的文本")]
         public override string Text
         {
-            get { return text; }
+            get { return this.text; }
             set
             {
                 this.text = value;
@@ -95,6 +102,7 @@ namespace HslCommunication.Controls
         [Browsable(true)]
         [Category( "外观" )]
         [DefaultValue( typeof( Color ), "White" )]
+        [Description( "获取或设置文本的颜色" )]
         public override Color ForeColor
         {
             get => textColor;
@@ -114,6 +122,7 @@ namespace HslCommunication.Controls
         [Browsable( true )]
         [Category( "外观" )]
         [DefaultValue( typeof( Color ), "DarkGreen" )]
+        [Description( "获取或设置文本的背景色" )]
         public Color TextBackColor
         {
             get => textBackColor;
@@ -155,8 +164,8 @@ namespace HslCommunication.Controls
 
         private void UserDrum_Paint( object sender, PaintEventArgs e )
         {
+            if (!Authorization.nzugaydgwadawdibbas( )) return;
             if (Width < 40 || Height < 50) return;
-
 
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;

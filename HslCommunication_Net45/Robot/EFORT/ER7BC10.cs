@@ -1,4 +1,5 @@
-﻿using HslCommunication.Core;
+﻿using HslCommunication.BasicFramework;
+using HslCommunication.Core;
 using HslCommunication.Core.IMessage;
 using HslCommunication.Core.Net;
 using System;
@@ -13,9 +14,8 @@ namespace HslCommunication.Robot.EFORT
     /// <summary>
     /// 埃夫特机器人对应型号为ER7B-C10，此协议为定制版，使用前请测试
     /// </summary>
-    public class ER7BC10 : NetworkDoubleBase<EFORTMessage, RegularByteTransform>
+    public class ER7BC10 : NetworkDoubleBase<EFORTMessage, RegularByteTransform>, IRobotNet
     {
-
         #region Constructor
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace HslCommunication.Robot.EFORT
             IpAddress = ipAddress;
             Port = port;
 
-            hybirdLock = new SimpleHybirdLock( );                                 // 实例化一个数据锁
+            softIncrementCount = new SoftIncrementCount( ushort.MaxValue );
         }
 
         #endregion
@@ -46,139 +46,78 @@ namespace HslCommunication.Robot.EFORT
             Encoding.ASCII.GetBytes( "MessageHead" ).CopyTo( command, 0 );
             BitConverter.GetBytes( (ushort)command.Length ).CopyTo( command, 16 );
             BitConverter.GetBytes( (ushort)1001 ).CopyTo( command, 18 );
-            BitConverter.GetBytes( GetHeartBeat( ) ).CopyTo( command, 20 );
+            BitConverter.GetBytes( (ushort)softIncrementCount.GetCurrentValue( ) ).CopyTo( command, 20 );
             Encoding.ASCII.GetBytes( "MessageTail" ).CopyTo( command, 22);
 
             return command;
         }
 
-        private ushort GetHeartBeat( )
-        {
-            ushort result = 0;
-            hybirdLock.Enter( );
-
-            result = (ushort)heartbeat;
-            heartbeat++;
-            if (heartbeat > ushort.MaxValue)
-            {
-                heartbeat = 0;
-            }
-
-            hybirdLock.Leave( );
-            return result;
-        }
-
         #endregion
 
-        #region Read Support
-
-
+        #region IRobotNet Support
+        
         /// <summary>
-        /// 读取机器人的详细信息
+        /// 读取埃夫特机器人的原始的字节数据信息，该地址参数是没有任何作用的，随便填什么
         /// </summary>
-        /// <returns>结果数据信息</returns>
-        public OperateResult<EfortData> Read( )
+        /// <param name="address">无效参数</param>
+        /// <returns>带有成功标识的byte[]数组</returns>
+        public OperateResult<byte[]> Read( string address )
         {
-            OperateResult<byte[]> read = ReadFromCoreServer( GetReadCommand( ) );
-            if (!read.IsSuccess) return OperateResult.CreateFailedResult<EfortData>( read );
-
-            if (read.Content.Length < 788)
-                return new OperateResult<EfortData>( string.Format( StringResources.Language.DataLengthIsNotEnough, 788, read.Content.Length ) );
-
-            // 开始解析数据
-            EfortData efortData = new EfortData( );
-            efortData.PacketStart = Encoding.ASCII.GetString( read.Content, 0, 16 ).Trim( );
-            efortData.PacketOrders = BitConverter.ToUInt16( read.Content, 18 );
-            efortData.PacketHeartbeat = BitConverter.ToUInt16( read.Content, 20 );
-            efortData.ErrorStatus = read.Content[22];
-            efortData.HstopStatus = read.Content[23];
-            efortData.AuthorityStatus = read.Content[24];
-            efortData.ServoStatus = read.Content[25];
-            efortData.AxisMoveStatus = read.Content[26];
-            efortData.ProgMoveStatus = read.Content[27];
-            efortData.ProgLoadStatus = read.Content[28];
-            efortData.ProgHoldStatus = read.Content[29];
-            efortData.ModeStatus = BitConverter.ToUInt16( read.Content, 30 );
-            efortData.SpeedStatus = BitConverter.ToUInt16( read.Content, 32 );
-
-            for (int i = 0; i < 32; i++)
-            {
-                efortData.IoDOut[i] = read.Content[34 + i];
-            }
-            for (int i = 0; i < 32; i++)
-            {
-                efortData.IoDIn[i] = read.Content[66 + i];
-            }
-            for (int i = 0; i < 32; i++)
-            {
-                efortData.IoIOut[i] = BitConverter.ToInt32( read.Content, 100 + 4 * i );
-            }
-            for (int i = 0; i < 32; i++)
-            {
-                efortData.IoIIn[i] = BitConverter.ToInt32( read.Content, 228 + 4 * i );
-            }
-
-            efortData.ProjectName = Encoding.ASCII.GetString( read.Content, 356, 32 ).Trim( '\u0000' );
-            efortData.ProgramName = Encoding.ASCII.GetString( read.Content, 388, 32 ).Trim( '\u0000' );
-            efortData.ErrorText = Encoding.ASCII.GetString( read.Content, 420, 128 ).Trim( '\u0000' );
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisPos[i] = BitConverter.ToSingle( read.Content, 548 + 4 * i );
-            }
-
-            for (int i = 0; i < 6; i++)
-            {
-                efortData.DbCartPos[i] = BitConverter.ToSingle( read.Content, 576 + 4 * i );
-            }
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisSpeed[i] = BitConverter.ToSingle( read.Content, 600 + 4 * i );
-            }
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisAcc[i] = BitConverter.ToSingle( read.Content, 628 + 4 * i );
-            }
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisAccAcc[i] = BitConverter.ToSingle( read.Content, 656 + 4 * i );
-            }
-            
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisTorque[i] = BitConverter.ToSingle( read.Content, 684 + 4 * i );
-            }
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisDirCnt[i] = BitConverter.ToInt32( read.Content, 712 + 4 * i );
-            }
-
-            for (int i = 0; i < 7; i++)
-            {
-                efortData.DbAxisTime[i] = BitConverter.ToInt32( read.Content, 740 + 4 * i );
-            }
-
-
-            efortData.DbDeviceTime = BitConverter.ToInt32( read.Content, 768 );
-            efortData.PacketEnd = Encoding.ASCII.GetString( read.Content, 772, 16 ).Trim( );
-
-
-            return OperateResult.CreateSuccessResult( efortData );
+            return ReadFromCoreServer( GetReadCommand( ) );
         }
 
+        /// <summary>
+        /// 读取机器人的所有的数据信息，返回JSON格式的数据对象，地址参数无效
+        /// </summary>
+        /// <param name="address">地址信息</param>
+        /// <returns>带有成功标识的字符串数据</returns>
+        public OperateResult<string> ReadString( string address )
+        {
+            OperateResult<EfortData> read = ReadEfortData( );
+            if (!read.IsSuccess) return OperateResult.CreateFailedResult<string>( read );
 
+            return OperateResult.CreateSuccessResult( Newtonsoft.Json.JsonConvert.SerializeObject( read.Content, Newtonsoft.Json.Formatting.Indented ) );
+        }
 
+        /// <summary>
+        /// 本机器人不支持该方法操作，将永远返回失败，无效的操作
+        /// </summary>
+        /// <param name="address">指定的地址信息，有些机器人可能不支持</param>
+        /// <param name="value">原始的字节数据信息</param>
+        /// <returns>是否成功的写入</returns>
+        public OperateResult Write( string address, byte[] value )
+        {
+            return new OperateResult( StringResources.Language.NotSupportedFunction );
+        }
 
+        /// <summary>
+        /// 本机器人不支持该方法操作，将永远返回失败，无效的操作
+        /// </summary>
+        /// <param name="address">指定的地址信息，有些机器人可能不支持</param>
+        /// <param name="value">字符串的数据信息</param>
+        /// <returns>是否成功的写入</returns>
+        public OperateResult Write( string address, string value )
+        {
+            return new OperateResult( StringResources.Language.NotSupportedFunction );
+        }
+        
+        /// <summary>
+        /// 读取机器人的详细信息，返回解析后的数据类型
+        /// </summary>
+        /// <returns>结果数据信息</returns>
+        public OperateResult<EfortData> ReadEfortData( )
+        {
+            OperateResult<byte[]> read = Read( "" );
+            if (!read.IsSuccess) return OperateResult.CreateFailedResult<EfortData>( read );
+
+            return EfortData.PraseFrom( read.Content );
+        }
+        
         #endregion
 
         #region Private Member
-
-        private int heartbeat = 0;
-        private SimpleHybirdLock hybirdLock;             // 心跳值的锁
+        
+        private SoftIncrementCount softIncrementCount;              // 自增消息的对象
 
         #endregion
 

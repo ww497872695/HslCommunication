@@ -8,11 +8,12 @@ import HslCommunication.Enthernet.ComplexNet.NetComplexClient;
 import HslCommunication.Enthernet.PushNet.NetPushClient;
 import HslCommunication.Enthernet.SimplifyNet.NetSimplifyClient;
 import HslCommunication.ModBus.ModbusTcpNet;
+import HslCommunication.Profinet.Melsec.MelsecA1ENet;
 import HslCommunication.Profinet.Melsec.MelsecMcAsciiNet;
 import HslCommunication.Profinet.Melsec.MelsecMcNet;
-import HslCommunication.Profinet.Melsec.MelsecA1ENet;
 import HslCommunication.Profinet.Siemens.SiemensPLCS;
 import HslCommunication.Profinet.Siemens.SiemensS7Net;
+import HslCommunicationDemo.FormLoad;
 
 import java.util.Arrays;
 
@@ -22,7 +23,7 @@ public class Main {
 
         //NetSimplifyClientTest();
 
-        MelsecA1ETest();
+        //MelsecA1ETest();
         //MelsecTest();
         //PushNetTest();
 
@@ -30,6 +31,9 @@ public class Main {
         //SiemesTest();
 
 
+        FormLoad formLoad = new FormLoad();
+        formLoad.setVisible(true);
+        formLoad.dispose();
 
         try {
             //Constructor[] aa = Integer.class.getDeclaredConstructors();
@@ -42,19 +46,27 @@ public class Main {
             //MelsecMcNet melsec_net = new MelsecMcNet("192.168.8.12", 6001);
             //System.out.println(melsec_net.ReadInt16("D100").Content);
 
-            SiemensS7Net siemensS7Net = new SiemensS7Net(SiemensPLCS.S1200,"192.168.8.12");
-            OperateResult write = siemensS7Net.Write("M200",(short)200);
+            //SiemensS7Net siemensS7Net = new SiemensS7Net(SiemensPLCS.S1200,"192.168.8.12");
+            //OperateResult write = siemensS7Net.Write("M200",(short)200);
 
-            if(!write.IsSuccess){
-                System.out.println("Write failed:"+write.Message);
-            }
+            //if(!write.IsSuccess){
+                //System.out.println("Write failed:"+write.Message);
+            //}
 
-            OperateResultExOne<Short> read = siemensS7Net.ReadInt16("M200");
+            //OperateResultExOne<Short> read = siemensS7Net.ReadInt16("M200");
+            //if(read.IsSuccess){
+                //System.out.println("Value:"+read.Content.toString());
+            //}
+            //else {
+                //System.out.println("Read failed:"+read.Message);
+            //}
+            ModbusTcpNet modbus = new ModbusTcpNet("127.0.0.1",503,(byte)1);
+            OperateResultExOne<Boolean> read = modbus.ReadCoil("100");
             if(read.IsSuccess){
                 System.out.println("Value:"+read.Content.toString());
             }
             else {
-                System.out.println("Read failed:"+read.Message);
+                System.out.println("Failed:"+read.Message);
             }
         }
         catch (Exception ex){

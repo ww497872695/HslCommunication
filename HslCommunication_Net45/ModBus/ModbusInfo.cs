@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HslCommunication.Core.Address;
 
 namespace HslCommunication.ModBus
 {
@@ -11,15 +12,8 @@ namespace HslCommunication.ModBus
     /// </summary>
     public class ModbusInfo
     {
-
-        /*****************************************************************************************
-         * 
-         *    本服务器和客户端支持的常用功能码
-         * 
-         *******************************************************************************************/
-
-
-
+        #region Function Declaration
+        
         /// <summary>
         /// 读取线圈
         /// </summary>
@@ -60,19 +54,10 @@ namespace HslCommunication.ModBus
         /// </summary>
         public const byte WriteRegister = 0x10;
 
+        #endregion
 
-
-
-
-
-        /*****************************************************************************************
-         * 
-         *    本服务器和客户端支持的异常返回
-         * 
-         *******************************************************************************************/
-
-
-
+        #region ErrCode Declaration
+        
         /// <summary>
         /// 不支持该功能码
         /// </summary>
@@ -90,16 +75,10 @@ namespace HslCommunication.ModBus
         /// </summary>
         public const byte FunctionCodeReadWriteException = 0x04;
 
-
-
-
-
-
-
-
-        #region Static Method
-
-
+        #endregion
+        
+        #region Static Helper Method
+        
         /// <summary>
         /// 将modbus指令打包成Modbus-Tcp指令
         /// </summary>
@@ -118,7 +97,6 @@ namespace HslCommunication.ModBus
             value.CopyTo( buffer, 6 );
             return buffer;
         }
-
 
 #if !NETSTANDARD2_0
 
@@ -190,12 +168,13 @@ namespace HslCommunication.ModBus
         /// </summary>
         /// <param name="address">带格式的地址，比如"100"，"x=4;100"，"s=1;100","s=1;x=4;100"</param>
         /// <param name="isStartWithZero">起始地址是否从0开始</param>
+        /// <param name="defaultFunction">默认的功能码信息</param>
         /// <returns>转换后的地址信息</returns>
-        public static OperateResult<ModbusAddress> AnalysisReadAddress( string address, bool isStartWithZero )
+        public static OperateResult<ModbusAddress> AnalysisAddress( string address, bool isStartWithZero, byte defaultFunction )
         {
             try
             {
-                ModbusAddress mAddress = new ModbusAddress( address );
+                ModbusAddress mAddress = new ModbusAddress( address, defaultFunction );
                 if (!isStartWithZero)
                 {
                     if (mAddress.Address < 1) throw new Exception( StringResources.Language.ModbusAddressMustMoreThanOne );
@@ -218,19 +197,14 @@ namespace HslCommunication.ModBus
         {
             switch (code)
             {
-                case ModbusInfo.FunctionCodeNotSupport: return StringResources.Language.ModbusTcpFunctionCodeNotSupport;
-                case ModbusInfo.FunctionCodeOverBound: return StringResources.Language.ModbusTcpFunctionCodeOverBound;
-                case ModbusInfo.FunctionCodeQuantityOver: return StringResources.Language.ModbusTcpFunctionCodeQuantityOver;
-                case ModbusInfo.FunctionCodeReadWriteException: return StringResources.Language.ModbusTcpFunctionCodeReadWriteException;
-                default: return StringResources.Language.UnknownError;
+                case ModbusInfo.FunctionCodeNotSupport:               return StringResources.Language.ModbusTcpFunctionCodeNotSupport;
+                case ModbusInfo.FunctionCodeOverBound:                return StringResources.Language.ModbusTcpFunctionCodeOverBound;
+                case ModbusInfo.FunctionCodeQuantityOver:             return StringResources.Language.ModbusTcpFunctionCodeQuantityOver;
+                case ModbusInfo.FunctionCodeReadWriteException:       return StringResources.Language.ModbusTcpFunctionCodeReadWriteException;
+                default:                                              return StringResources.Language.UnknownError;
             }
         }
 
-
         #endregion
-
-
-
-
     }
 }

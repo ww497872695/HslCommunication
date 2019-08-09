@@ -29,15 +29,14 @@ namespace HslCommunicationDemo
             comboBox2.SelectedItem = HslMessageDegree.DEBUG;
             comboBox2.SelectedIndexChanged += ComboBox2_SelectedIndexChanged;
 
-            logNet.FiltrateKeyword( "123" );
+            logNet.FiltrateKeyword( "123" );  // 过滤关键字123的存储
+            logNet.BeforeSaveToFile += LogNet_BeforeSaveToFile;
 
+        }
 
-            if (!Program.ShowAuthorInfomation)
-            {
-                label2.Visible = false;
-                linkLabel1.Visible = false;
-                label20.Visible = false;
-            }
+        private void LogNet_BeforeSaveToFile( object sender, HslEventArgs e )
+        {
+            e.HslMessage.Cancel = checkBox1.Checked;
         }
 
         private void ComboBox2_SelectedIndexChanged( object sender, EventArgs e )
@@ -156,18 +155,6 @@ namespace HslCommunicationDemo
             System.IO.File.WriteAllBytes( "log.txt", new byte[0] );
         }
 
-        private void linkLabel1_Click( object sender, EventArgs e )
-        {
-            try
-            {
-                System.Diagnostics.Process.Start( linkLabel1.Text );
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show( ex.Message );
-            }
-        }
-
         private void button8_Click( object sender, EventArgs e )
         {
             using(FormLogNetView form = new FormLogNetView())
@@ -176,16 +163,5 @@ namespace HslCommunicationDemo
             }
         }
 
-        private void linkLabel1_LinkClicked( object sender, LinkLabelLinkClickedEventArgs e )
-        {
-            try
-            {
-                System.Diagnostics.Process.Start( linkLabel1.Text );
-            }
-            catch (Exception ex)
-            {
-                HslCommunication.BasicFramework.SoftBasic.ShowExceptionMessage( ex );
-            }
-        }
     }
 }

@@ -23,6 +23,20 @@ namespace HslCommunication.LogNet
 
     }
 
+    /// <summary>
+    /// 日志存储回调的异常信息
+    /// </summary>
+    public class LogNetException : Exception
+    {
+        /// <summary>
+        /// 使用其他的异常信息来初始化日志异常
+        /// </summary>
+        /// <param name="innerException">异常信息</param>
+        public LogNetException( Exception innerException ) : base( innerException.Message, innerException )
+        {
+
+        }
+    }
 
     #endregion
 
@@ -61,7 +75,7 @@ namespace HslCommunication.LogNet
 
 
     #endregion
-    
+
     #region Message Degree
 
     /// <summary>
@@ -106,13 +120,13 @@ namespace HslCommunication.LogNet
     {
         private static long IdNumber = 0;
 
-
         /// <summary>
         /// 默认的无参构造器
         /// </summary>
-        public HslMessageItem()
+        public HslMessageItem( )
         {
-            Id = Interlocked.Increment(ref IdNumber);
+            Id    = Interlocked.Increment( ref IdNumber );
+            Time  = DateTime.Now;
         }
 
         /// <summary>
@@ -144,20 +158,32 @@ namespace HslCommunication.LogNet
         /// 消息的关键字
         /// </summary>
         public string KeyWord { get; set; }
-        
+
+        /// <summary>
+        /// 是否取消写入到文件中去，在事件BeforeSaveToFile触发的时候捕获即可设置。
+        /// </summary>
+        public bool Cancel { get; set; }
+
         /// <summary>
         /// 返回表示当前对象的字符串
         /// </summary>
         /// <returns>字符串信息</returns>
         public override string ToString( )
         {
-            if (string.IsNullOrEmpty( KeyWord ))
+            if (Degree != HslMessageDegree.None)
             {
-                return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D2" )}] {Text}";
+                if (string.IsNullOrEmpty( KeyWord ))
+                {
+                    return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D3" )}] {Text}";
+                }
+                else
+                {
+                    return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D3" )}] {KeyWord} : {Text}";
+                }
             }
             else
             {
-                return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D2" )}] {KeyWord} : {Text}";
+                return Text;
             }
         }
 
@@ -165,13 +191,19 @@ namespace HslCommunication.LogNet
         /// 返回表示当前对象的字符串，剔除了关键字
         /// </summary>
         /// <returns>字符串信息</returns>
-        public string ToStringWithoutKeyword()
+        public string ToStringWithoutKeyword( )
         {
-            return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D2" )}] {Text}";
+            if (Degree != HslMessageDegree.None)
+            {
+                return $"[{Degree}] {Time.ToString( "yyyy-MM-dd HH:mm:ss.fff" )} Thread [{ThreadId.ToString( "D3" )}] {Text}";
+            }
+            else
+            {
+                return Text;
+            }
         }
     }
 
     #endregion
-
 
 }

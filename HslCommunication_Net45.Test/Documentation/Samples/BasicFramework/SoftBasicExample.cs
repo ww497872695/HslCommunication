@@ -85,6 +85,19 @@ namespace HslCommunication_Net45.Test.Documentation.Samples.BasicFramework
             #endregion
         }
 
+        public void GetTimeSpanDescriptionExample( )
+        {
+            #region GetTimeSpanDescriptionExample
+
+            string size = SoftBasic.GetTimeSpanDescription( TimeSpan.FromMinutes( 12.3d ) );
+
+            // 12.3 分钟
+            Console.WriteLine( size );
+
+
+            #endregion
+        }
+
         public void AddArrayDataExample( )
         {
             #region AddArrayDataExample
@@ -136,6 +149,37 @@ namespace HslCommunication_Net45.Test.Documentation.Samples.BasicFramework
 
             // 输出 1234, 1235, 1236, 1237, 1238, 0 
 
+
+            #endregion
+        }
+
+        public void ArraySplitByLengthExample( )
+        {
+            #region ArraySplitByLengthExample
+
+            int[] b1 = new int[10] { 12341, -2324, 84646, 324245, 352, 654332, 7687632, 435, 234, 3434 };
+            List<int[]> b2 = SoftBasic.ArraySplitByLength( b1, 4 );
+
+            // b2 共有3个数组
+            // 数组1   [12341, -2324, 84646, 324245]
+            // 数组2   [352, 654332, 7687632, 435]
+            // 数组3   [234, 3434]
+
+            #endregion
+        }
+
+        public void SplitIntegerToArrayExample( )
+        {
+            #region SplitIntegerToArrayExample
+
+            int[] b1 = SoftBasic.SplitIntegerToArray( 10, 10 );
+            // b1为 [10]
+
+            int[] b2 = SoftBasic.SplitIntegerToArray( 10, 5 );
+            // b2为 [5,5]
+
+            int[] b3 = SoftBasic.SplitIntegerToArray( 10, 4 );
+            // b3为 [4,4,2]
 
             #endregion
         }
@@ -203,6 +247,22 @@ namespace HslCommunication_Net45.Test.Documentation.Samples.BasicFramework
             // Open
             // OpenOrCreate
             // Truncate
+
+            #endregion
+        }
+
+        public void GetEnumFromStringExample( )
+        {
+            #region GetEnumFromStringExample
+
+            // 从字符串生成枚举值，可以用来方便的进行数据存储，解析
+
+            System.IO.FileMode fileMode = SoftBasic.GetEnumFromString<System.IO.FileMode>( "Append" );
+
+            if(fileMode == FileMode.Append)
+            {
+                // This is true
+            }
 
             #endregion
         }
@@ -338,6 +398,10 @@ namespace HslCommunication_Net45.Test.Documentation.Samples.BasicFramework
 
             // 结果如下
             // result = new bool[] { true, false, false, true, true, true, false, true, false, false, false, true, false, true, false };
+
+            bool[] result2 = SoftBasic.ByteToBoolArray( buffer );
+            // 结果如下
+            // result2 = new bool[] { true, false, false, true, true, true, false, true, false, false, false, true, false, true, false, false };
 
             #endregion
         }
